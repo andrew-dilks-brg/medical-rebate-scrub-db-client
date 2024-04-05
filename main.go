@@ -20,6 +20,15 @@ const (
 	dbname   = "Adilks"
 )
 
+// prod database
+// const (
+// 	host     = "localhost"
+// 	port     = 10008
+// 	user     = "postgres"
+// 	password = "1234"
+// 	dbname   = "citus"
+// )
+
 func missingRequiredArgs() {
 	fmt.Println("Missing required args! Exiting")
 	fmt.Println("USAGE: go run . -manu=MANU -step=STEP -file=FILE.csv")
@@ -189,7 +198,7 @@ func addCsrItem(db *sql.DB, table string, manu string, item map[string]string, d
 	if !strings.Contains(csrNPI, "MOD_340B") {
 		if debug { fmt.Println(item) }
 		on, err := db.Query( fmt.Sprintf("INSERT INTO medical_rebate_scrub.%s VALUES ('%s', '%s', '%s', '%s', '%s', '%s');", table, manu, csrNPI, csrProductName, csrVal, csrStartDOS, csrEndDOS) )
-		
+		// pq: sorry, too many clients already
 		if err != nil {
 			fmt.Println(err.Error() + " for item: " + csrNPI + " " + csrProductName)
 		} else {
@@ -216,7 +225,7 @@ func queryTable(db *sql.DB, table string, manu string) {
 
 func printTableHeaders(table string) {
 	if table == "ndc_lu" {
-		fmt.Println("manu  | product |  ndc_code")
+		fmt.Println("manu  | product |  ndc")
 	} else if table == "pos_lu" {
 		fmt.Println("manu  |  pos")
 	} else if table == "mod_lu" {
@@ -234,10 +243,10 @@ func parseTableOutput(table string, rows *sql.Rows) {
 	if table == "ndc_lu" {
 		var manufacturer string
 		var product string
-		var ndc_code string
+		var ndc string
 		for rows.Next() {
-			rows.Scan(&manufacturer, &product, &ndc_code)
-			fmt.Println("" + manufacturer + ", " + product + ", " + ndc_code)
+			rows.Scan(&manufacturer, &product, &ndc)
+			fmt.Println("" + manufacturer + ", " + product + ", " + ndc)
 		}
 	} else if table == "pos_lu" {
 		var manufacturer string
