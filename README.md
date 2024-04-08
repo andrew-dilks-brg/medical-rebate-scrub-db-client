@@ -1,3 +1,6 @@
+### Overview
+* This is a tool that was created to interact with the rbtbin - MRS tables. It has read, create, and delete apis for 5 tables that MRS relies on. Can be used by anyone with the correct SDM permissions to update our source of truth for MRS scrubs in the rebate-binary.
+
 ### Example Usage
 * `go run . -manu=Amgen -table=ndc_lu -step=add -file=/Users/Adilks/Downloads/NDC_LU2.csv`
 * `go run . -manu=Amgen -table=ndc_lu -step=delete`
