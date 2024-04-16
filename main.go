@@ -18,15 +18,19 @@ const (
 	user     = "postgres"
 	password = "1234"
 	dbname   = "Adilks"
+	sslEnabled = false
+	schemaName = "medical_rebate_scrub"
 )
 
 // prod database
 // const (
-// 	host     = "localhost"
-// 	port     = 10008
-// 	user     = "postgres"
-// 	password = "1234"
+// 	host     = "c.ovi-ledger.postgres.database.azure.com"
+// 	port     = 6432
+// 	user     = "citus"
+// 	password = "GET FROM ADMIN"
 // 	dbname   = "citus"
+// 	sslEnabled = true
+// 	schemaName = "rbtbin"
 // )
 
 func missingRequiredArgs() {
@@ -67,7 +71,12 @@ func main() {
 		missingRequiredArgs()
 	}
 
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",host, port, user, password, dbname)
+	var psqlInfo string
+	if !sslEnabled {
+		psqlInfo = fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",host, port, user, password, dbname)
+	} else {
+		psqlInfo = fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s",host, port, user, password, dbname)
+	}
 
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
@@ -77,6 +86,9 @@ func main() {
 
 	err = db.Ping()
 	if err != nil {
+		fmt.Println()
+		fmt.Println("Was not able to ping the DB!")
+		fmt.Println()
 		panic(err)
 	}
 
@@ -93,7 +105,7 @@ func main() {
 
 func deleteItems(db *sql.DB, table string, manu string) {
 	fmt.Println("- Deleting data from table - ")
-	rows, err := db.Query(fmt.Sprintf("DELETE FROM medical_rebate_scrub.%s WHERE manu='%s'", table, manu))
+	rows, err := db.Query(fmt.Sprintf("DELETE FROM %s.%s WHERE manu='%s'", schemaName, table, manu))
 	if err != nil {
 		fmt.Println(err)
 	} else {
@@ -149,7 +161,7 @@ func addNdcItem(db *sql.DB, table string, manu string, key string, value string,
 	itemsAdded := 0
 	if !strings.Contains(value, "PRODUCT") {
 		if debug { fmt.Println(key + ", " + value) }
-		_, err := db.Query(fmt.Sprintf("INSERT INTO medical_rebate_scrub.%s VALUES ('%s', '%s', '%s');", table, manu, value, key))
+		_, err := db.Query(fmt.Sprintf("INSERT INTO %s.%s VALUES ('%s', '%s', '%s');", schemaName, table, manu, value, key))
 		if err != nil {
 			fmt.Println(err.Error() + " for item: " + key + ", " + value)
 		} else {
@@ -163,7 +175,7 @@ func addPosItem(db *sql.DB, table string, manu string, key string, debug bool) i
 	itemsAdded := 0
 	if !strings.Contains(key, "POS") {
 		if debug { fmt.Println(key) }
-		_, err := db.Query(fmt.Sprintf("INSERT INTO medical_rebate_scrub.%s VALUES ('%s', '%s');", table, manu, key))
+		_, err := db.Query(fmt.Sprintf("INSERT INTO %s.%s VALUES ('%s', '%s');", schemaName, table, manu, key))
 		if err != nil {
 			fmt.Println(err.Error() + " for item: " + key)
 		} else {
@@ -177,7 +189,7 @@ func addModItem(db *sql.DB, table string, manu string, key string, debug bool) i
 	itemsAdded := 0
 	if !strings.Contains(key, "MOD_340B") {
 		if debug { fmt.Println(key) }
-		_, err := db.Query(fmt.Sprintf("INSERT INTO medical_rebate_scrub.%s VALUES ('%s', '%s');", table, manu, key))
+		_, err := db.Query(fmt.Sprintf("INSERT INTO %s.%s VALUES ('%s', '%s');", schemaName, table, manu, key))
 		if err != nil {
 			fmt.Println(err.Error() + " for item: " + key)
 		} else {
@@ -197,7 +209,7 @@ func addCsrItem(db *sql.DB, table string, manu string, item map[string]string, d
 
 	if !strings.Contains(csrNPI, "MOD_340B") {
 		if debug { fmt.Println(item) }
-		on, err := db.Query( fmt.Sprintf("INSERT INTO medical_rebate_scrub.%s VALUES ('%s', '%s', '%s', '%s', '%s', '%s');", table, manu, csrNPI, csrProductName, csrVal, csrStartDOS, csrEndDOS) )
+		on, err := db.Query( fmt.Sprintf("INSERT INTO %s.%s VALUES ('%s', '%s', '%s', '%s', '%s', '%s');", schemaName, table, manu, csrNPI, csrProductName, csrVal, csrStartDOS, csrEndDOS) )
 		// pq: sorry, too many clients already
 		if err != nil {
 			fmt.Println(err.Error() + " for item: " + csrNPI + " " + csrProductName)
@@ -215,9 +227,9 @@ func queryTable(db *sql.DB, table string, manu string) {
 	fmt.Println("- Querying table -")
 	printTableHeaders(table)
 	if manu == "" {
-		rows, _ = db.Query(fmt.Sprintf("SELECT * FROM medical_rebate_scrub.%s", table))
+		rows, _ = db.Query(fmt.Sprintf("SELECT * FROM %s.%s", schemaName, table))
 	} else {
-		rows, _ = db.Query(fmt.Sprintf("SELECT * FROM medical_rebate_scrub.%s WHERE manu='%s'", table, manu))
+		rows, _ = db.Query(fmt.Sprintf("SELECT * FROM %s.%s WHERE manu='%s'", schemaName, table, manu))
 	}
 	parseTableOutput(table, rows)
 	fmt.Println()
