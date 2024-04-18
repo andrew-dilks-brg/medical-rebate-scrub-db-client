@@ -57,7 +57,7 @@ func parseCSRcsv(fileName string, debug bool) []map[string]string {
 	if debug {
 		fmt.Println("Reading in csr data")
 	}
-	basePath := "/Users/Adilks/Documents/BRG_Code/rebate-service/client/MCS_csvs/"
+	basePath := ""
 
 	var result []map[string]string
 
