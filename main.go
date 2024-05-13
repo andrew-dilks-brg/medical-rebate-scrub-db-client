@@ -44,6 +44,7 @@ func missingRequiredArgs() {
 // README - manu must be a valid manufacturer - case insensitive
 // step must be the process you'd like to run for example add get, or delete
 // file path required for add
+// TODO - currently schema is hardcoded for table headers and printing table output - this shouldnt change but already has once - if happens again look into using a DB DAO
 func main() {
 	m := flag.String("manu", "", "")
 	s := flag.String("step", "", "")
@@ -129,9 +130,9 @@ func addItems(db *sql.DB, table string, manu string, fileLocation string, debug 
 			itemsAdded += addNdcItem(db, table, manu, key, value, debug)
 		}
 	} else if table == "pos_lu" {
-		file = convertCSVToMap(fileLocation, false, false) // no swap needed
-		for key := range file {
-			itemsAdded += addPosItem(db, table, manu, key, debug)
+		results := parseMultiColcsv(fileLocation, false)
+		for _, key := range results {
+			itemsAdded += addPosItem(db, table, manu, key["POS"], key["POS_TYPE"], debug)
 		}
 	} else if table == "mod_lu" {
 		file = convertCSVToMap(fileLocation, false, false) // no swap needed
@@ -139,7 +140,7 @@ func addItems(db *sql.DB, table string, manu string, fileLocation string, debug 
 			itemsAdded += addModItem(db, table, manu, key, debug)
 		}
 	} else if table == "csr_list" {
-		results := parseCSRcsv(fileLocation, false) // different parser entirely
+		results := parseMultiColcsv(fileLocation, false) // different parser entirely
 		for _, item := range results {
 			itemsAdded += addCsrItem(db, table, manu, item, debug)
 		}
@@ -171,17 +172,16 @@ func addNdcItem(db *sql.DB, table string, manu string, key string, value string,
 	return itemsAdded
 }
 
-func addPosItem(db *sql.DB, table string, manu string, key string, debug bool) int {
+func addPosItem(db *sql.DB, table string, manu string, pos string, pos_type string, debug bool) int {
 	itemsAdded := 0
-	if !strings.Contains(key, "POS") {
-		if debug { fmt.Println(key) }
-		_, err := db.Query(fmt.Sprintf("INSERT INTO %s.%s VALUES ('%s', '%s');", schemaName, table, manu, key))
-		if err != nil {
-			fmt.Println(err.Error() + " for item: " + key)
-		} else {
-			itemsAdded += 1
-		}
+	if debug { fmt.Println(pos) }
+	_, err := db.Query(fmt.Sprintf("INSERT INTO %s.%s VALUES ('%s', '%s', '%s');", schemaName, table, manu, pos, pos_type))
+	if err != nil {
+		fmt.Println(err.Error() + " for item: " + pos)
+	} else {
+		itemsAdded += 1
 	}
+
 	return itemsAdded
 }
 
@@ -239,7 +239,7 @@ func printTableHeaders(table string) {
 	if table == "ndc_lu" {
 		fmt.Println("manu  | product |  ndc")
 	} else if table == "pos_lu" {
-		fmt.Println("manu  |  pos")
+		fmt.Println("manu  |  pos  |  type")
 	} else if table == "mod_lu" {
 		fmt.Println("manu  |  mod_340b")
 	} else if table == "hcpcs_lu" {
@@ -263,9 +263,10 @@ func parseTableOutput(table string, rows *sql.Rows) {
 	} else if table == "pos_lu" {
 		var manufacturer string
 		var pos string
+		var pos_type string
 		for rows.Next() {
-			rows.Scan(&manufacturer, &pos)
-			fmt.Println("" + manufacturer + ", " + pos)
+			rows.Scan(&manufacturer, &pos, &pos_type)
+			fmt.Println("" + manufacturer + ", " + pos + ", " + pos_type)
 		}
 	} else if table == "mod_lu" {
 		var manufacturer string

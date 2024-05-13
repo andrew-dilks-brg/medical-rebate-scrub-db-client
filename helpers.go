@@ -53,7 +53,7 @@ func convertCSVToMap(fileName string, swap bool, debug bool) map[string]string {
 }
 
 // TODO - this was pulled from rebate service - make sure to reuse that code once its foud a home
-func parseCSRcsv(fileName string, debug bool) []map[string]string {
+func parseMultiColcsv(fileName string, debug bool) []map[string]string {
 	if debug {
 		fmt.Println("Reading in csr data")
 	}

@@ -15,7 +15,7 @@
         "CREATE TABLE rbtbin.ndc_lu ( manu text, product text, ndc text, PRIMARY KEY ndc );"
 
     * Create POS_LU table
-        "CREATE TABLE rbtbin.pos_lu ( manu text, pos text, PRIMARY KEY (manu, pos) );"
+        "CREATE TABLE rbtbin.pos_lu ( manu text, pos text, pos_type text, PRIMARY KEY (manu, pos) );"
 
     * Create MOD_LU table
         "CREATE TABLE rbtbin.mod_lu ( manu text, mod_340b text, PRIMARY KEY (manu, mod_340b) );"
