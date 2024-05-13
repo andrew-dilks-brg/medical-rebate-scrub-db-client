@@ -12,7 +12,7 @@
 ### These are the scripts used to create the tables themselves
 * Added into schema "rbtbin"
     * Create NDC LU table
-        "CREATE TABLE rbtbin.ndc_lu ( manu text, product text, ndc text, PRIMARY KEY ndc );"
+        "CREATE TABLE rbtbin.ndc_lu ( manu text, product text, ndc text, PRIMARY KEY (ndc) );"
 
     * Create POS_LU table
         "CREATE TABLE rbtbin.pos_lu ( manu text, pos text, pos_type text, PRIMARY KEY (manu, pos) );"
@@ -25,3 +25,6 @@
 
     * Create CSR_LIST table
         "CREATE TABLE rbtbin.csr_list ( manu text, npi text, product text, csr text, start_date text, term_date text, PRIMARY KEY (manu, npi, product) );"
+
+    * Create CSR_LIST table
+        "CREATE TABLE rbtbin.binary_cbks ( manu text, product text, npi text, description text, priority text, PRIMARY KEY (manu, product, npi) );"

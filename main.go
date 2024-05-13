@@ -19,7 +19,7 @@ const (
 	password = "1234"
 	dbname   = "Adilks"
 	sslEnabled = false
-	schemaName = "medical_rebate_scrub"
+	schemaName = "rbtbin"
 )
 
 // prod database
@@ -138,12 +138,17 @@ func addItems(db *sql.DB, table string, manu string, fileLocation string, debug 
 	} else if table == "mod_lu" {
 		results = parseMultiColcsv(fileLocation, false)
 		for _, key := range results {
-			itemsAdded += addModItem(db, table, manu, key["MOD_350B"], key["MOD_TYPE"], debug)
+			itemsAdded += addModItem(db, table, manu, key["MOD_340B"], key["MOD_TYPE"], debug)
 		}
 	} else if table == "csr_list" {
 		results = parseMultiColcsv(fileLocation, false)
 		for _, item := range results {
 			itemsAdded += addCsrItem(db, table, manu, item, debug)
+		}
+	} else if table == "binary_cbks" {
+		results = parseMultiColcsv(fileLocation, false)
+		for _, item := range results {
+			itemsAdded += addBinaryCbksItem(db, table, manu, item, debug)
 		}
 	} else {
 		fmt.Println("Have yet to add support for this table!")
@@ -198,6 +203,28 @@ func addModItem(db *sql.DB, table string, manu string, mod_340b string, mod_type
 	return itemsAdded
 }
 
+func addBinaryCbksItem(db *sql.DB, table string, manu string, item map[string]string, debug bool) int {
+	itemsAdded := 0
+	cbkProductName := item["PRODUCT"]
+	cbkNPI         := item["NPI"]
+	cbkDesc        := item["DESCRIPTION"]
+	cbkPriority    := item["PRIORITY"]
+
+	if debug { fmt.Println(item) }
+	on, err := db.Query( fmt.Sprintf(
+		"INSERT INTO %s.%s VALUES ('%s', '%s', '%s', '%s', '%s');", schemaName, table, manu, cbkProductName, cbkNPI, cbkDesc, cbkPriority,
+	) )
+
+	if err != nil {
+		fmt.Println(err.Error() + " for item: " + cbkProductName + " " + cbkNPI)
+	} else {
+		on.Close()
+		itemsAdded += 1
+	}
+
+	return itemsAdded
+}
+
 func addCsrItem(db *sql.DB, table string, manu string, item map[string]string, debug bool) int {
 	itemsAdded := 0
 	csrNPI         := item["NPI"]
@@ -245,6 +272,8 @@ func printTableHeaders(table string) {
 		fmt.Println("manu | product | hcpcs_cd")
 	} else if table == "csr_list" {
 		fmt.Println("manu | npi | product | csr | start_date | term_date")
+	} else if table == "binary_cbks" {
+		fmt.Println("manu | product | npi | description | priority")
 	} else {
 		fmt.Println("You havent built support for this table yet")
 	}
@@ -293,6 +322,16 @@ func parseTableOutput(table string, rows *sql.Rows) {
 		for rows.Next() {
 			rows.Scan(&manufacturer, &npi, &product, &csr, &start_date, &term_date)
 			fmt.Println("" + manufacturer + ", " + npi + ", " + product + ", " + csr + ", " + start_date + ", " + term_date)
+		}
+	} else if table == "binary_cbks" {
+		var manufacturer string
+		var product string
+		var npi string
+		var description string
+		var priority string
+		for rows.Next() {
+			rows.Scan(&manufacturer, &product, &npi, &description, &priority)
+			fmt.Println("" + manufacturer + ", " + product + ", " + npi + ", " + description + ", " + priority)
 		}
 	} else {
 		fmt.Println("You havent built support for this table yet")
