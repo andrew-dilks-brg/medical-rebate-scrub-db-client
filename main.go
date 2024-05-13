@@ -122,6 +122,7 @@ func deleteItems(db *sql.DB, table string, manu string) {
 func addItems(db *sql.DB, table string, manu string, fileLocation string, debug bool) {
 	fmt.Println("- Adding data into table - ")
 	var file map[string]string
+	var results []map[string]string
 	itemsAdded := 0
 
 	if table == "ndc_lu" || table == "hcpcs_lu" {
@@ -130,17 +131,17 @@ func addItems(db *sql.DB, table string, manu string, fileLocation string, debug 
 			itemsAdded += addNdcItem(db, table, manu, key, value, debug)
 		}
 	} else if table == "pos_lu" {
-		results := parseMultiColcsv(fileLocation, false)
+		results = parseMultiColcsv(fileLocation, false)
 		for _, key := range results {
 			itemsAdded += addPosItem(db, table, manu, key["POS"], key["POS_TYPE"], debug)
 		}
 	} else if table == "mod_lu" {
-		file = convertCSVToMap(fileLocation, false, false) // no swap needed
-		for key := range file {
-			itemsAdded += addModItem(db, table, manu, key, debug)
+		results = parseMultiColcsv(fileLocation, false)
+		for _, key := range results {
+			itemsAdded += addModItem(db, table, manu, key["MOD_350B"], key["MOD_TYPE"], debug)
 		}
 	} else if table == "csr_list" {
-		results := parseMultiColcsv(fileLocation, false) // different parser entirely
+		results = parseMultiColcsv(fileLocation, false)
 		for _, item := range results {
 			itemsAdded += addCsrItem(db, table, manu, item, debug)
 		}
@@ -185,16 +186,14 @@ func addPosItem(db *sql.DB, table string, manu string, pos string, pos_type stri
 	return itemsAdded
 }
 
-func addModItem(db *sql.DB, table string, manu string, key string, debug bool) int {
+func addModItem(db *sql.DB, table string, manu string, mod_340b string, mod_type string, debug bool) int {
 	itemsAdded := 0
-	if !strings.Contains(key, "MOD_340B") {
-		if debug { fmt.Println(key) }
-		_, err := db.Query(fmt.Sprintf("INSERT INTO %s.%s VALUES ('%s', '%s');", schemaName, table, manu, key))
-		if err != nil {
-			fmt.Println(err.Error() + " for item: " + key)
-		} else {
-			itemsAdded += 1
-		}
+	if debug { fmt.Println(mod_340b) }
+	_, err := db.Query(fmt.Sprintf("INSERT INTO %s.%s VALUES ('%s', '%s', '%s');", schemaName, table, manu, mod_340b, mod_type))
+	if err != nil {
+		fmt.Println(err.Error() + " for item: " + mod_340b)
+	} else {
+		itemsAdded += 1
 	}
 	return itemsAdded
 }
@@ -241,7 +240,7 @@ func printTableHeaders(table string) {
 	} else if table == "pos_lu" {
 		fmt.Println("manu  |  pos  |  type")
 	} else if table == "mod_lu" {
-		fmt.Println("manu  |  mod_340b")
+		fmt.Println("manu  |  mod_340b  |  mod_type")
 	} else if table == "hcpcs_lu" {
 		fmt.Println("manu | product | hcpcs_cd")
 	} else if table == "csr_list" {
@@ -271,9 +270,10 @@ func parseTableOutput(table string, rows *sql.Rows) {
 	} else if table == "mod_lu" {
 		var manufacturer string
 		var mod_340b string
+		var mod_type string
 		for rows.Next() {
-			rows.Scan(&manufacturer, &mod_340b)
-			fmt.Println("" + manufacturer + ", " + mod_340b)
+			rows.Scan(&manufacturer, &mod_340b, &mod_type)
+			fmt.Println("" + manufacturer + ", " + mod_340b + ", " + mod_type)
 		}
 	} else if table == "hcpcs_lu" {
 		var manufacturer string

@@ -7,7 +7,6 @@ import (
 	"strings"
 )
 
-// TOOD - this was pulled from rebate service verbatum - remove to decrease chance of bugs and duplicate code
 // this only works for single and double column CSVs
 func convertCSVToMap(fileName string, swap bool, debug bool) map[string]string {
 	if debug {
@@ -52,7 +51,6 @@ func convertCSVToMap(fileName string, swap bool, debug bool) map[string]string {
 	return result
 }
 
-// TODO - this was pulled from rebate service - make sure to reuse that code once its foud a home
 func parseMultiColcsv(fileName string, debug bool) []map[string]string {
 	if debug {
 		fmt.Println("Reading in csr data")
