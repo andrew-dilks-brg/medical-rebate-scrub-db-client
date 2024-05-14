@@ -9,6 +9,9 @@
 * `go run . -step=get -table=pos_lu -manu=amgen`
 
 
+### TODO
+* Add bulk upload feature to improve upload time for CSR and CBKS datasets - these take 10min with single writes per row
+
 ### These are the scripts used to create the tables themselves
 * Added into schema "rbtbin"
     * Create NDC LU table
