@@ -10,24 +10,26 @@
 
 
 ### TODO
-* Add bulk upload feature to improve upload time for CSR and CBKS datasets - these take 10min with single writes per row
+* [ ] Add bulk upload feature to improve upload time for CSR and CBKS datasets - these take 10min with single writes per row
+* [ ] Add 1pass support to no longer need copy paste of creds
+* [ ] Add `-environemnt` flag to alternate between staging and prod.
 
 ### These are the scripts used to create the tables themselves
 * Added into schema "rbtbin"
     * Create NDC LU table
-        "CREATE TABLE rbtbin.mrs_ndc_lu ( manufacturer text, product text, ndc text, PRIMARY KEY (ndc) );"
+        `CREATE TABLE rbtbin.mrs_ndc_lu ( manufacturer text, product text, ndc text, PRIMARY KEY (ndc) );`
 
     * Create POS_LU table
-        "CREATE TABLE rbtbin.mrs_pos_lu ( manufacturer text, pos text, pos_type text, PRIMARY KEY (manufacturer, pos) );"
+        `CREATE TABLE rbtbin.mrs_pos_lu ( manufacturer text, pos text, pos_type text, PRIMARY KEY (manufacturer, pos) );`
 
     * Create MOD_LU table
-        "CREATE TABLE rbtbin.mrs_mod_lu ( manufacturer text, mod_340b text, mod_type text, PRIMARY KEY (manufacturer, mod_340b) );"
+        `CREATE TABLE rbtbin.mrs_mod_lu ( manufacturer text, mod_340b text, mod_type text, PRIMARY KEY (manufacturer, mod_340b) );`
 
     * Create HCPCS_LU table
-        "CREATE TABLE rbtbin.mrs_hcpcs_lu ( manufacturer text, product text, hcpcs_cd text, PRIMARY KEY (manufacturer, hcpcs_cd) );"
+        `CREATE TABLE rbtbin.mrs_hcpcs_lu ( manufacturer text, product text, hcpcs_cd text, PRIMARY KEY (manufacturer, hcpcs_cd) );`
 
     * Create CSR_LIST table
-        "CREATE TABLE rbtbin.mrs_csr_list ( manufacturer text, npi text, product text, csr text, start_date text, term_date text, PRIMARY KEY (manufacturer, npi, product) );"
+        `CREATE TABLE rbtbin.mrs_csr_list ( manufacturer text, npi text, product text, csr text, start_date text, term_date text, PRIMARY KEY (manufacturer, npi, product) );`
 
     * Create BINARY_CHARGEBACKS table
-        "CREATE TABLE rbtbin.mrs_binary_cbks ( manufacturer text, product text, npi text, description text, priority text, PRIMARY KEY (manufacturer, product, npi) );"
+        `CREATE TABLE rbtbin.mrs_binary_cbks ( manufacturer text, product text, npi text, description text, priority text, PRIMARY KEY (manufacturer, product, npi) );`
